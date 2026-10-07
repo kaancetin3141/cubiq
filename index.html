@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#12132b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Cubiq" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>Cubiq</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- SVG İKON SETİ -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M7 3v14"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5H5a3 3 0 0 0 3 5M16 5h3a3 3 0 0 1-3 5M12 13v4M9 20h6"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h9M19 6h1M4 12h3M11 12h9M4 18h11M21 18h-1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9l5 6M21 9l-5 6"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v5h-5"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 1 3.6 10.8c-.6.5-.6 1.2-.6 2.2h-6c0-1-.1-1.7-.7-2.2A6 6 0 0 1 12 3z"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 17l1.5-9 4.5 4 3-6 3 6 4.5-4L21 17z"/><path d="M5 20h14"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3c0 4 3 5 4 6 1-1 4-2 4-6M8 21c0-4 3-5 4-6 1 1 4 2 4 6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4M9 15l2 2 4-4"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-9-9a4.8 4.8 0 0 1 9-2 4.8 4.8 0 0 1 9 2c-2 4.5-9 9-9 9z"/></symbol>
+    <symbol id="i-vibrate" viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 9v6M20 9v6"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1 0-9 6 6 0 0 1 11.6 1.6A4 4 0 0 1 18 18z"/></symbol>
+  </svg>
+
+  <!-- AÇILIŞ SPLASH -->
+  <div id="splash">
+    <div class="splash-logo">CUBIQ</div>
+    <div class="splash-tag">PREMIUM BLOK BULMACA</div>
+  </div>
+
+  <canvas id="board"></canvas>
+
+  <!-- ANA MENÜ -->
+  <div id="screen-menu" class="screen active">
+    <div class="menu-inner">
+      <div class="logo">CUBIQ</div>
+      <div class="logo-blocks">
+        <span class="lb r"></span><span class="lb c"></span><span class="lb y"></span><span class="lb g"></span>
+      </div>
+      <div class="lvlbox">
+        <div class="lvlchip" id="lvlChip">SV 1</div>
+        <div class="lvlmid">
+          <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
+          <div class="lvltext" id="lvltext">0 / 100 XP</div>
+        </div>
+        <div class="coinchip" id="coinChip">🪙 0</div>
+      </div>
+      <div class="tagline">PREMIUM BLOK BULMACA</div>
+      <div class="menu-streak hidden" id="loginStreak"></div>
+      <div class="menu-buttons">
+        <button class="mbtn green" id="btnClassic">
+          <b><svg class="icon"><use href="#i-play"/></svg> KLASİK</b>
+          <span>Sonsuz mod · <svg class="icon s"><use href="#i-crown"/></svg> <i id="bestClassic">0</i></span>
+        </button>
+        <button class="mbtn orange" id="btnTime">
+          <b><svg class="icon"><use href="#i-clock"/></svg> ZAMANA KARŞI</b>
+          <span>2 dakika · <svg class="icon s"><use href="#i-crown"/></svg> <i id="bestTime">0</i></span>
+        </button>
+        <button class="mbtn teal" id="btnDaily">
+          <b><svg class="icon"><use href="#i-calendar"/></svg> GÜNLÜK GÖREV</b>
+          <span id="dailyStatus">Bugünün dizisi · henüz oynanmadı</span>
+        </button>
+        <button class="mbtn indigo" id="btnAdventure">
+          <b><svg class="icon"><use href="#i-map"/></svg> MACERA</b>
+          <span id="advStatus">Bölüm 1/10</span>
+        </button>
+        <div class="menu-row">
+          <button class="mbtn small blue" id="btnHow"><svg class="icon"><use href="#i-book"/></svg> NASIL</button>
+          <button class="mbtn small gold" id="btnBadges"><svg class="icon"><use href="#i-trophy"/></svg> ROZET</button>
+          <button class="mbtn small purple" id="btnSettings"><svg class="icon"><use href="#i-sliders"/></svg> AYAR</button>
+        </div>
+      </div>
+      <div class="menu-foot">sürükle · bırak · patlat</div>
+    </div>
+  </div>
+
+  <!-- OYUN HUD -->
+  <div id="hud" class="hidden">
+    <div class="brand">CUBIQ</div>
+    <div class="scorebox">
+      <div class="score" id="score">0</div>
+      <div class="scorebar">
+        <div class="scorefill" id="scorefill"></div>
+        <div class="crown" id="crown"><svg class="icon"><use href="#i-crown"/></svg></div>
+      </div>
+      <div class="mult hidden" id="mult"></div>
+    </div>
+    <div class="chip timer hidden" id="timerWrap"><svg class="icon"><use href="#i-hourglass"/></svg><b id="timer">2:00</b></div>
+    <div class="chip goal hidden" id="goalChip"></div>
+    <div class="actions">
+      <button id="hintBtn" class="iconbtn" title="İpucu" aria-label="İpucu"><svg class="icon"><use href="#i-bulb"/></svg></button>
+      <button id="pause" class="iconbtn" title="Duraklat" aria-label="Duraklat"><svg class="icon"><use href="#i-pause"/></svg></button>
+      <button id="restart" class="iconbtn" title="Yeniden başlat" aria-label="Yeniden başlat"><svg class="icon"><use href="#i-restart"/></svg></button>
+      <button id="mute" class="iconbtn" title="Sesi aç/kapat" aria-label="Sesi aç/kapat">
+        <svg class="icon ion"><use href="#i-sound"/></svg>
+        <svg class="icon ioff hidden"><use href="#i-mute"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="hint">Parçaları sürükleyip ızgaraya bırak — dolu satır ve sütunlar patlar!</div>
+
+  <!-- OYUN SONU -->
+  <div id="overlay" class="hidden">
+    <div class="panel">
+      <h2 id="ovTitle">Oyun Bitti</h2>
+      <p id="ovNew" class="hidden"><svg class="icon"><use href="#i-trophy"/></svg> YENİ REKOR!</p>
+      <div class="ovstars" id="ovStars"></div>
+      <div class="ovscore">SKOR<b id="ovScore">0</b></div>
+      <div class="ovscore">REKOR<b id="ovBest">0</b></div>
+      <div class="ovspark" id="ovSpark"></div>
+      <div class="ovstats" id="ovClose"></div>
+      <div class="ovstats" id="ovStats"></div>
+      <div class="ovstats" id="ovLife"></div>
+      <div class="ovstats" id="ovCoins"></div>
+      <div class="lbsection" id="lbSection"></div>
+      <button id="revive" class="revive hidden"><svg class="icon"><use href="#i-heart"/></svg> DEVAM ET — SON ŞANS</button>
+      <button id="coinRevive" class="revive gold hidden">🪙 30 — ALTINLA DEVAM</button>
+      <div class="row">
+        <button id="again">TEKRAR OYNA</button>
+        <button id="nextLevel" class="ghost hidden">SONRAKİ BÖLÜM</button>
+        <button id="toMenu" class="ghost">ANA MENÜ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DURAKLATMA -->
+  <div id="pauseOverlay" class="hidden">
+    <div class="panel">
+      <h2>Duraklatıldı</h2>
+      <div class="pause-buttons">
+        <button id="resume">DEVAM ET</button>
+        <button id="pauseRestart" class="ghost">YENİDEN BAŞLAT</button>
+        <button id="pauseMenu" class="ghost">ANA MENÜ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NASIL OYNANIR -->
+  <div id="modal-how" class="modal hidden">
+    <div class="panel">
+      <button class="close" data-close="modal-how" aria-label="Kapat"><svg class="icon"><use href="#i-close"/></svg></button>
+      <h2>Nasıl Oynanır?</h2>
+      <ul class="howto">
+        <li>🧩 <b>Sürükle-bırak:</b> Alttaki tepsideki parçaları ızgaraya yerleştir (döndürme yok).</li>
+        <li>💥 <b>Patlat:</b> Dolu satır ve sütunlar temizlenir; aynı hamlede birden fazla temizleme = combo bonusu.</li>
+        <li>🔥 <b>Seri:</b> Üst üste patlamalar çarpanı büyütür — tepsi alev alır! Patlamayan tek hamle seriyi söndürür.</li>
+        <li>📅 <b>Günlük Görev:</b> Her gün aynı parça dizisi herkes için — en yüksek skoru kap.</li>
+        <li>⌨️ <b>Klavye:</b> 1-2-3 ile parça seç, ok tuşlarıyla taşı, Enter ile bırak (masaüstü).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ROZETLER -->
+  <div id="modal-badges" class="modal hidden">
+    <div class="panel">
+      <button class="close" data-close="modal-badges" aria-label="Kapat"><svg class="icon"><use href="#i-close"/></svg></button>
+      <h2>Rozetler</h2>
+      <div class="badgeprogress" id="badgeProgress"></div>
+      <div class="badgegrid" id="badgegrid"></div>
+    </div>
+  </div>
+
+  <!-- AYARLAR -->
+  <div id="modal-settings" class="modal hidden">
+    <div class="panel">
+      <button class="close" data-close="modal-settings" aria-label="Kapat"><svg class="icon"><use href="#i-close"/></svg></button>
+      <h2>Ayarlar</h2>
+      <label class="setting"><span class="slabel"><svg class="icon"><use href="#i-sound"/></svg> Ses</span>
+        <span class="switch"><input type="checkbox" id="swSound" checked /><i></i></span>
+      </label>
+      <label class="setting"><span class="slabel"><svg class="icon"><use href="#i-vibrate"/></svg> Titreşim</span>
+        <span class="switch"><input type="checkbox" id="swVib" checked /><i></i></span>
+      </label>
+      <label class="setting"><span class="slabel"><svg class="icon"><use href="#i-music"/></svg> Müzik</span>
+        <span class="switch"><input type="checkbox" id="swMusic" checked /><i></i></span>
+      </label>
+      <div class="setting-label"><svg class="icon"><use href="#i-palette"/></svg> Tema <span class="hintmini" id="themeHint"></span></div>
+      <div class="themegrid" id="themegrid"></div>
+      <div class="setting-label"><svg class="icon"><use href="#i-sliders"/></svg> Blok stili</div>
+      <div class="themegrid" id="stylegrid"></div>
+      <label class="setting"><span class="slabel"><svg class="icon"><use href="#i-user"/></svg> Adın</span>
+        <input id="playerName" class="nameinput" maxlength="12" placeholder="Oyuncu" />
+      </label>
+      <div class="cloudrow">
+        <button id="cloudSave" class="ghost"><svg class="icon"><use href="#i-cloud"/></svg> YEDEKLE</button>
+        <button id="cloudLoad" class="ghost"><svg class="icon"><use href="#i-cloud"/></svg> GERİ YÜKLE</button>
+      </div>
+      <label class="setting"><span class="slabel"><svg class="icon"><use href="#i-cloud"/></svg> Çevrimdışı mod</span>
+        <span class="hintmini" id="swStatus">…</span>
+      </label>
+      <div class="statsbox" id="lifeStats"></div>
+      <button id="resetBest" class="danger"><svg class="icon"><use href="#i-crown"/></svg> REKORLARI SIFIRLA</button>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script src="js/pieces.js"></script>
+  <script src="js/themes.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
