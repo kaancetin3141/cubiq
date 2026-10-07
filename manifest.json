@@ -1,0 +1,12 @@
+{
+  "name": "Cubiq",
+  "short_name": "Cubiq",
+  "description": "Premium blok patlatma bulmaca — seri alevi, combo çarpanı ve candy görselli tek kod tabanı (web + iOS + Android).",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#12132b",
+  "theme_color": "#12132b",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
