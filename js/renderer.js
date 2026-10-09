@@ -36,9 +36,10 @@ const Renderer = (() => {
     c.closePath();
   }
 
-  /* candy blok: gölge + gradyan gövde + köşe ışıması + bevel + parlama + speküler nokta */
+  /* candy blok: gölge + gradyan gövde + koyu dikiş konturu + köşe ışıması + bevel + parlama + speküler nokta
+     (benzer premium blok oyunları standardı: keskin köşe, karoları ayıran ince koyu kenar, çapraz cam parlaması) */
   function drawCandyBlock(c, x, y, s, color) {
-    const rad = Math.max(3, s * 0.22);
+    const rad = Math.max(3, s * 0.17);
     c.save();
     c.shadowColor = "rgba(0,0,0,0.38)";
     c.shadowBlur = s * 0.14;
@@ -55,6 +56,12 @@ const Renderer = (() => {
     rr(c, x, y, s, s, rad);
     c.fillStyle = g;
     c.fill();
+
+    /* koyu dikiş konturu: yan yana gelen aynı renkli karolar bile ayrı okunur */
+    rr(c, x + 0.75, y + 0.75, s - 1.5, s - 1.5, rad);
+    c.strokeStyle = "rgba(0,0,0,0.30)";
+    c.lineWidth = Math.max(1, s * 0.03);
+    c.stroke();
 
     /* sol üst köşeden yumuşak ışıma (hacim hissi) */
     const rg = c.createRadialGradient(x + s * 0.26, y + s * 0.22, s * 0.04, x + s * 0.26, y + s * 0.22, s * 0.8);
@@ -78,14 +85,21 @@ const Renderer = (() => {
     c.save();
     rr(c, x, y, s, s, rad);
     c.clip();
-    c.fillStyle = "rgba(255,255,255,0.26)";
+    c.fillStyle = "rgba(255,255,255,0.32)";
     c.fillRect(x + rad * 0.6, y + 1, s - rad * 1.2, Math.max(1, s * 0.05));
-    c.fillStyle = "rgba(0,0,0,0.20)";
+    c.fillStyle = "rgba(0,0,0,0.24)";
     c.fillRect(x + rad * 0.6, y + s - 1 - Math.max(1, s * 0.06), s - rad * 1.2, Math.max(1, s * 0.06));
     c.fillStyle = "rgba(255,255,255,0.09)";
     c.fillRect(x + 1, y + rad * 0.6, Math.max(1, s * 0.04), s - rad * 1.2);
     c.fillStyle = "rgba(0,0,0,0.12)";
     c.fillRect(x + s - 1 - Math.max(1, s * 0.05), y + rad * 0.6, Math.max(1, s * 0.05), s - rad * 1.2);
+    /* çapraz cam parlaması: üst-soldan geçen yumuşak diyalgonal şerit */
+    const dg = c.createLinearGradient(x, y + s * 0.62, x + s * 0.82, y);
+    dg.addColorStop(0, "rgba(255,255,255,0)");
+    dg.addColorStop(0.5, "rgba(255,255,255,0.15)");
+    dg.addColorStop(1, "rgba(255,255,255,0)");
+    c.fillStyle = dg;
+    c.fillRect(x, y, s, s * 0.72);
     c.restore();
 
     rr(c, x + s * 0.14, y + s * 0.10, s * 0.55, s * 0.20, s * 0.10);
@@ -177,6 +191,12 @@ const Renderer = (() => {
     c.closePath();
     c.fill();
     c.restore();
+
+    /* koyu dikiş konturu: candy ile tutarlı karo ayrılığı */
+    rr(c, x + 0.75, y + 0.75, s - 1.5, s - 1.5, rad);
+    c.strokeStyle = "rgba(0,0,0,0.26)";
+    c.lineWidth = Math.max(1, s * 0.03);
+    c.stroke();
 
     rr(c, x + 1, y + 1, s - 2, s - 2, rad);
     c.strokeStyle = "rgba(255,255,255,0.35)";
