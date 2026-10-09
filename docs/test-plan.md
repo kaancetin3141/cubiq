@@ -217,6 +217,21 @@ Tüm testler gerçek tarayıcıda (ZCode uygulama içi Chromium, masaüstü 1024
 
 Bu turda oturumda tarayıcı otomasyon aracı (node_repl) bulunmadığından sayısal tarayıcı QA'sı yapılamadı; yerine kapsamlı statik çapraz denetim (ID/simbol/CSS/referans/parantez/goal-tip kapsaması, tüm giriş yollarının handlePlace'e bağlanması) uygulandı. Sonraki turda tarayıcı erişimi geri gelirse A4-A6 senaryoları placeAt/klavye döngüsüyle sayısal olarak teyit edilmeli.
 
+## v17 — Görsel cila + performans (mobil odaklı)
+
+| ID | Senaryo | Beklenen | Sonuç |
+|---|---|---|---|
+| P1 | iOS viewport | L.w/L.h visualViewport'tan; canvas CSS boyutu px olarak açıkça atanır (buffer≠CSS ezilmesi biter) | ✅ (kod: vv + style.width/height) |
+| P2 | Araç çubuğu göster/gizle | visualViewport resize + orientationchange dinleyicileri düzeni tazeler | ✅ (main.js onResize) |
+| P3 | Kısa ekran (yatay telefon) | boardSize alt sınırı 200→150, tepsi 100→84: taşma kalmaz | ✅ (formül denetimi) |
+| P4 | Boşta kare atlama | busy değilse her 3. kare çizilir (~20fps); drag/anim/aura/streak anında 60fps'e döner | ✅ (isBusy kapsamı: drag, shake, hint, sweep, place, clear, snap, floats, parts, rings, streak≥2) |
+| P5 | Oyun sonrası aura | Game.over iken streak aurası busy sayılmaz — panel arkasında 60fps harcanmaz | ✅ |
+| P6 | Atmosfer sprite'ları | yüzen bloklar 4px kovasız sprite cache'ten drawImage; resize/retheme'de temizlenir | ✅ (ambientSprite + clear noktaları) |
+| P7 | Yıldız tozu | 8-16 statik nokta sinüs parlaklıkla — ekran başına ~1 ek daire kümesi | ✅ (dust dizisi) |
+| P8 | Statik varlık katmanı | tahta düş-gölgesi, cam kenar ışığı, tepsi yuvaları, 4. ışıma blob'u buildBg offscreen'inde (çalışma anı maliyeti 0) | ✅ |
+| P9 | Sözdizimi | süslü 133/133, parantez 758/758; yeni semboller (isBusy/ambientSprite/dust/panelShadow) mevcut | ✅ |
+| P10 | SW v3 | önbellek adı cubiq-shell-v3; activate eski önbellekleri siler | ✅ |
+
 ## Otomasyon notları
 
 - `window.__game` kancası: `Game` (durum), `Renderer` (düzen), `placeAt(idx, r, c)` (UI'sız hamle).
