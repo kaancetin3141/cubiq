@@ -232,6 +232,16 @@ Bu turda oturumda tarayıcı otomasyon aracı (node_repl) bulunmadığından say
 | P9 | Sözdizimi | süslü 133/133, parantez 758/758; yeni semboller (isBusy/ambientSprite/dust/panelShadow) mevcut | ✅ |
 | P10 | SW v3 | önbellek adı cubiq-shell-v3; activate eski önbellekleri siler | ✅ |
 
+### v17.1 — Karo sanatı ayarı (benzer oyunlar standardı)
+
+| ID | Senaryo | Beklenen | Sonuç |
+|---|---|---|---|
+| S1 | Köşe yarıçapı | candy 0.22→0.17: Block Blast tarzı keskin köşe | ✅ |
+| S2 | Koyu dikiş konturu | yan yana aynı renkli karolar ayrı okunur (rgba(0,0,0,0.30) ince dış çizgi) — candy + gem | ✅ |
+| S3 | Çapraz parlama | üst-soldan yumuşak diyalgonal beyaz şerit (clip'li, cam hissi) | ✅ |
+| S4 | Bevel güçlendirme | üst ışık 0.26→0.32, alt AO 0.20→0.24: karo tahtadan belirgin ayrılır | ✅ |
+| S5 | Sprite önbelleği | değişiklikler blockSprite içinde — kare maliyeti 0, tema/stil geçişinde yeniden üretilir | ✅ |
+
 ## Otomasyon notları
 
 - `window.__game` kancası: `Game` (durum), `Renderer` (düzen), `placeAt(idx, r, c)` (UI'sız hamle).
