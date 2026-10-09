@@ -281,8 +281,10 @@ const Renderer = (() => {
     buildBg();
   }
 
-  /* --- arka plan atmosferi: süzülen soluk bloklar --- */
+  /* --- arka plan atmosferi: süzülen soluk bloklar + yıldız tozu --- */
   const ambient = [];
+  const dust = [];
+  const ambientSprites = new Map(); /* boyut kovası + renk anahtarlı mini sprite'lar */
   function initAmbient() {
     ambient.length = 0;
     const n = Math.min(18, Math.max(10, Math.round(L.w / 70)));
@@ -298,18 +300,54 @@ const Renderer = (() => {
         alpha: 0.03 + Math.random() * 0.04,
       });
     }
+    dust.length = 0;
+    const dn = Math.min(16, Math.max(8, Math.round((L.w * L.h) / 42000)));
+    for (let i = 0; i < dn; i++) {
+      dust.push({
+        x: Math.random() * L.w,
+        y: Math.random() * L.h,
+        r: 0.8 + Math.random() * 1.5,
+        sp: 0.5 + Math.random() * 1.1,
+        ph: Math.random() * Math.PI * 2,
+      });
+    }
+    ambientSprites.clear();
+  }
+
+  function ambientSprite(color, s) {
+    const bucket = Math.max(6, Math.round(s / 4) * 4); /* 4px kovası: sprite sayısı sınırlı kalır */
+    const key = color + ":" + bucket;
+    let cv = ambientSprites.get(key);
+    if (!cv) {
+      const pad = 2;
+      cv = document.createElement("canvas");
+      cv.width = bucket + pad * 2;
+      cv.height = bucket + pad * 2;
+      const c2 = cv.getContext("2d");
+      c2.fillStyle = COLORS[color].base;
+      rr(c2, pad, pad, bucket, bucket, bucket * 0.3);
+      c2.fill();
+      ambientSprites.set(key, cv);
+    }
+    return cv;
   }
 
   function drawAmbient(now) {
     const t = now / 1000;
+    /* yıldız tozu: sabit konum, sinüsle yanıp sönen minik noktalar */
+    ctx.fillStyle = "#ffffff";
+    for (const d of dust) {
+      ctx.globalAlpha = 0.08 + 0.18 * (0.5 + 0.5 * Math.sin(t * d.sp + d.ph));
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
     const span = L.h + 60;
     for (const a of ambient) {
       const y = (((a.y - a.vy * t) % span) + span) % span - 30;
       const x = a.x + Math.sin(t * 0.4 + a.phase) * a.sway;
       ctx.globalAlpha = a.alpha;
-      rr(ctx, x, y, a.s, a.s, a.s * 0.3);
-      ctx.fillStyle = COLORS[a.color].base;
-      ctx.fill();
+      ctx.drawImage(ambientSprite(a.color, a.s), x, y, a.s, a.s);
     }
     ctx.globalAlpha = 1;
   }
@@ -329,6 +367,7 @@ const Renderer = (() => {
       { x: L.w * 0.16, y: L.h * 0.22, r: big * 0.32, c: withAlpha(COLORS[5].base, 0.10) },
       { x: L.w * 0.86, y: L.h * 0.62, r: big * 0.30, c: withAlpha(COLORS[6].base, 0.09) },
       { x: L.w * 0.52, y: L.h * 0.98, r: big * 0.28, c: withAlpha(COLORS[4].base, 0.08) },
+      { x: L.w * 0.50, y: L.h * 0.06, r: big * 0.24, c: withAlpha(COLORS[2].base, 0.07) },
     ];
     for (const bl of blobs) {
       const rg = b.createRadialGradient(bl.x, bl.y, 0, bl.x, bl.y, bl.r);
@@ -347,6 +386,16 @@ const Renderer = (() => {
     const pw = L.boardSize + 18, ph = L.boardSize + 18;
     const prad = 20;
 
+    /* yumuşak düş-gölgesi: tahta havada asılı gibi durur */
+    b.save();
+    b.shadowColor = CV.panelShadow || "rgba(0,0,0,0.42)";
+    b.shadowBlur = 30;
+    b.shadowOffsetY = 14;
+    rr(b, px, py, pw, ph, prad);
+    b.fillStyle = CV.panelBottom || "rgba(255,255,255,0.035)";
+    b.fill();
+    b.restore();
+
     rr(b, px, py, pw, ph, prad);
     const pg = b.createLinearGradient(0, py, 0, py + ph);
     pg.addColorStop(0, CV.panelTop || "rgba(255,255,255,0.075)");
@@ -358,6 +407,14 @@ const Renderer = (() => {
     b.strokeStyle = CV.panelStroke || "rgba(255,255,255,0.10)";
     b.lineWidth = 1.5;
     b.stroke();
+
+    /* premium üst kenar ışığı: cam çerçeve hissi */
+    b.save();
+    rr(b, px + 3, py + 3, pw - 6, ph - 6, prad - 3);
+    b.clip();
+    b.fillStyle = "rgba(255,255,255,0.10)";
+    b.fillRect(px + prad, py + 3, pw - prad * 2, Math.max(1, ph * 0.012));
+    b.restore();
 
     b.save();
     rr(b, px, py, pw, ph, prad);
@@ -381,6 +438,25 @@ const Renderer = (() => {
         b.fill();
         b.fillStyle = CV.socketHi || "rgba(255,255,255,0.035)";
         b.fillRect(sx + ss * 0.2, sy + 1, ss * 0.6, Math.max(1, ss * 0.04));
+      }
+    }
+
+    /* tepsi yuvaları: parçaların altında yumuşak "kuyu" (statik, bedava) */
+    if (!menuMode && L.slots.length === 3) {
+      const wellW = Math.min(L.w / 3 - 12, L.trayCell * 5 + 14);
+      const wellH = L.trayH - 6;
+      for (const s of L.slots) {
+        const wx = s.cx - wellW / 2, wy = s.cy - wellH / 2;
+        rr(b, wx, wy, wellW, wellH, 16);
+        const wg = b.createLinearGradient(0, wy, 0, wy + wellH);
+        wg.addColorStop(0, CV.socketTop || "rgba(0,0,0,0.24)");
+        wg.addColorStop(1, CV.socketBottom || "rgba(0,0,0,0.10)");
+        b.fillStyle = wg;
+        b.fill();
+        b.strokeStyle = "rgba(255,255,255,0.05)";
+        b.lineWidth = 1;
+        rr(b, wx + 1, wy + 1, wellW - 2, wellH - 2, 15);
+        b.stroke();
       }
     }
   }
@@ -771,13 +847,37 @@ const Renderer = (() => {
     ctx.restore();
   }
 
+  /* --- boşta performans: hareket yoksa kareleri sektir (~20fps'e düşer) ---
+     busy = sürükleme, herhangi bir animasyon (yerleşme/patlama/süpürme/halka/
+     yazı/parçacık), ipucu, sarsıntı, seri aurası… hiçbiri yoksa ekran yalnızca
+     yavaş süzülen atmosferden ibarettir; tam kalitede çizmeye gerek yok. */
+  let idleSkip = 0;
+  function isBusy() {
+    if (frozen) return true; /* dondurma karelerinde tutarlılık */
+    if (drag) return true;
+    if (anims.shake || anims.hint || anims.sweep) return true;
+    if (anims.place.length || anims.clear.length || anims.snap.length) return true;
+    if (anims.floats.length || anims.parts.length || anims.rings.length) return true;
+    if (!menuMode && !Game.over && Game.streak >= 2) return true; /* alevli seri aurası nabız verir */
+    return false;
+  }
+
   return {
     canvas, L, resize,
-    draw(now) { if (!frozen) renderFrame(now); },
+    draw(now) {
+      if (frozen) return;
+      if (!isBusy()) {
+        idleSkip = (idleSkip + 1) % 3;
+        if (idleSkip !== 0) return; /* bu kareyi çizme — bir sonraki kareye atla */
+      } else {
+        idleSkip = 0;
+      }
+      renderFrame(now);
+    },
     setFrozen(v) { frozen = !!v; },
     getHint() { return anims.hint; },
     confetti() { spawnConfetti(performance.now()); },
-    retheme() { sprites.clear(); buildBg(); },
+    retheme() { sprites.clear(); ambientSprites.clear(); buildBg(); },
     setBlockStyle(id) { blockStyle = id; sprites.clear(); },
     previewBlock(canvasEl, color, styleId) {
       const prev = blockStyle;
