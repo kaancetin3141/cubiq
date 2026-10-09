@@ -249,19 +249,25 @@ const Renderer = (() => {
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    L.w = window.innerWidth;
-    L.h = window.innerHeight;
+    /* iOS Safari: innerHeight araç çubuğu durumuna göre değişir; visualViewport
+       şu an GERÇEKTEN görünen alanı verir. CSS boyutu da açıkça piksel olarak
+       atanır ki buffer ile CSS boyutu hiçbir zaman ayrışmasın (dikey kayma/ezilme). */
+    const vv = window.visualViewport;
+    L.w = Math.max(1, Math.round(vv ? vv.width : window.innerWidth));
+    L.h = Math.max(1, Math.round(vv ? vv.height : window.innerHeight));
+    canvas.style.width = L.w + "px";
+    canvas.style.height = L.h + "px";
     canvas.width = Math.max(1, Math.round(L.w * dpr));
     canvas.height = Math.max(1, Math.round(L.h * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const pad = Math.max(10, L.w * 0.02);
     const gap = 14;
-    const trayH = Math.min(150, Math.max(100, L.h * 0.22));
+    const trayH = Math.min(150, Math.max(84, L.h * 0.22));
     const hudEl = document.getElementById("hud");
     L.top = menuMode || !hudEl || hudEl.classList.contains("hidden") ? 0 : hudEl.offsetHeight;
     /* -36: tahta ile tepsi arasına ipucu şeridi için pay */
-    L.boardSize = Math.max(200, Math.min(L.w - pad * 2, L.h - L.top - pad - trayH - gap - 36));
+    L.boardSize = Math.max(150, Math.min(L.w - pad * 2, L.h - L.top - pad - trayH - gap - 36));
     L.cell = L.boardSize / 8;
     L.boardX = (L.w - L.boardSize) / 2;
     L.boardY = pad + L.top;
