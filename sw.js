@@ -1,10 +1,10 @@
-/* Cubiq Service Worker v2 — çevrimdışı PWA
+/* Cubiq Service Worker v3 — çevrimdışı PWA
    Strateji: NETWORK-FIRST (çevrimiçiyken hep taze dosyalar; çevrimdışında önbellek).
    /api/* uçları daima ağa gider (liderlik/bulut çevrimdışında sessizce düşer).
-   Sürüm notu: asset değişince CACHE sürümünü yükseltmek yerine network-first
-   strateji tazeliği zaten sağlar; CACHE adı yalnız şema kırılımında değişir. */
+   Sürüm notu: network-first tazeliği zaten sağlar; CACHE adı yalnız şema kırılımında
+   değişir. v3: mobil viewport düzeltmesi (renderer/main) — eski v2 önbelleği temizlenir. */
 
-const CACHE = "cubiq-shell-v2";
+const CACHE = "cubiq-shell-v3";
 const SHELL = [
   "/",
   "/index.html",
