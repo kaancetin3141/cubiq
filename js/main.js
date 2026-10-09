@@ -1129,11 +1129,15 @@ const Music = (() => {
   else setTimeout(() => splash.remove(), 2100);
 
   /* pencere yeniden boyutlandırma: düzen + ipucu + klavye hayaleti tazelenir */
-  window.addEventListener("resize", () => {
+  const onResize = () => {
     Renderer.resize();
     positionHint();
     if (kb) updateKbDrag();
-  });
+  };
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", () => setTimeout(onResize, 250));
+  /* iOS Safari: araç çubuğu göster/gizle visualViewport ile gelir, window.resize tetiklenmeyebilir */
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", onResize);
 
   function loop(now) {
     Renderer.draw(now);
