@@ -942,6 +942,8 @@ const Music = (() => {
     fillLifeStats();
     buildThemeGrid();
     buildStyleGrid();
+    syncSwitches();
+    Renderer.setShake(DB.getShake());
     document.getElementById("modal-settings").classList.remove("hidden");
     Sfx.pickup();
   });
@@ -1017,12 +1019,15 @@ const Music = (() => {
   /* ---------- ayarlar ---------- */
   const swSound = document.getElementById("swSound");
   const swVib = document.getElementById("swVib");
+  const swMusic = document.getElementById("swMusic");
+  const swShake = document.getElementById("swShake");
   const resetBtn = document.getElementById("resetBest");
 
   function syncSwitches() {
     swSound.checked = !Sfx.muted;
     swVib.checked = settings.vib;
     swMusic.checked = Music.on;
+    swShake.checked = DB.getShake();
   }
 
   swSound.addEventListener("change", () => {
@@ -1037,6 +1042,10 @@ const Music = (() => {
   swMusic.addEventListener("change", () => {
     Music.on = swMusic.checked;
     if (Music.on) toast("🎵 Müzik açıldı");
+  });
+  swShake.addEventListener("change", () => {
+    DB.setShake(swShake.checked);
+    if (swShake.checked) vib(30);
   });
   reviveBtn.addEventListener("click", () => revive(false));
   document.getElementById("coinRevive").addEventListener("click", () => revive(true));
@@ -1141,6 +1150,7 @@ const Music = (() => {
 
   function loop(now) {
     Renderer.draw(now);
+    Game.updateFalling(now);
     /* animasyonlu skor sayacı */
     if (shown !== Game.score) {
       if (Game.score < shown) {
