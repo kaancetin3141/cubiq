@@ -122,6 +122,10 @@ const DB = (() => {
     return s;
   };
 
+  /* sarsıntı ayarı: varsayılan açık */
+  const getShake = () => get("cubiq.shake", "true") === "true";
+  const setShake = (v) => set("cubiq.shake", v ? "true" : "false");
+
   migrate();
 
   /* IDB yansımasını aç; localStorage boşsa IDB'den geri yükle (async, sessiz) */
