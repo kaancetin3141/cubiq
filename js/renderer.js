@@ -13,6 +13,7 @@ const Renderer = (() => {
   const placeScaleMap = new Map(); // her karede yeniden Map üretmemek için
   let drag = null;
   let bg = null;
+  let shakeEnabled = true; // ayarlardan okunur
 
   /* --- premium blok sprite önbelleği (3 çizim stili) --- */
   const MARGIN = 0.18; // sprite'ın gölge payı (blok boyutunun oranı)
@@ -676,7 +677,7 @@ const Renderer = (() => {
     if (menuMode) return; // ana menü: yalnızca atmosfer
 
     let sx = 0, sy = 0;
-    if (anims.shake) {
+    if (anims.shake && shakeEnabled) {
       const t = (now - anims.shake.t0) / 380;
       if (t >= 1) anims.shake = null;
       else if (t > 0) {
@@ -690,16 +691,139 @@ const Renderer = (() => {
     ctx.translate(sx, sy);
     if (bg) ctx.drawImage(bg, 0, 0, L.w, L.h);
 
-    /* seri aurası: tahta çerçevesi alev tonunda nabız verir */
-    if (Game.streak >= 2) {
-      const aura = 0.30 + 0.15 * Math.sin(now / 240);
+    /* --- COMBO ATEŞ ÇERÇEVESİ (Block Blast tarzı) ---
+       streak 2: hafif ışık halosu
+       streak 3: alt kenarda alev dili
+       streak 4: 4 kenara yayılan alevler
+       streak 5+: tam alev stormu + parçacıklar */
+    if (!menuMode && !Game.over && Game.streak >= 2) {
+      const streak = Math.min(Game.streak, 8);
+      const baseIntensity = 0.15 + streak * 0.08;      // 0.31 → 0.79
+      const flameHeight = L.cell * (0.6 + streak * 0.15); // 1.2 → 2.4 hücre
+      const time = now / 1000;
+
       ctx.save();
-      ctx.shadowColor = "rgba(255,150,60,0.85)";
-      ctx.shadowBlur = 24;
-      ctx.strokeStyle = `rgba(255,175,80,${aura.toFixed(3)})`;
-      ctx.lineWidth = 3;
-      rr(ctx, L.boardX - 9, L.boardY - 9, L.boardSize + 18, L.boardSize + 18, 20);
-      ctx.stroke();
+      ctx.globalCompositeOperation = "lighter";
+
+      // 4 kenar için alev dilleri
+      const sides = [
+        { x: L.boardX, y: L.boardY + L.boardSize, w: L.boardSize, h: flameHeight, angle: -Math.PI / 2 }, // alt
+        { x: L.boardX + L.boardSize, y: L.boardY, w: flameHeight, h: L.boardSize, angle: 0 },          // sağ
+        { x: L.boardX, y: L.boardY - flameHeight, w: L.boardSize, h: flameHeight, angle: Math.PI / 2 }, // üst
+        { x: L.boardX - flameHeight, y: L.boardY, w: flameHeight, h: L.boardSize, angle: Math.PI },    // sol
+      ];
+
+      // streak >= 4'te tüm kenarlar, 2-3'te sadece alt+sağ
+      const activeSides = streak >= 4 ? 4 : 2;
+
+      for (let si = 0; si < activeSides; si++) {
+        const side = sides[si];
+        const segments = Math.max(8, Math.round(side.w / (L.cell * 0.5)));
+        
+        for (let seg = 0; seg < segments; seg++) {
+          const prog = seg / segments;
+          const wave = Math.sin(time * 8 + prog * Math.PI * 4 + si * 2) * 0.5;
+          const flicker = Math.sin(time * 15 + seg * 1.7) * 0.3 + 0.7;
+          const intensity = baseIntensity * flicker * (0.7 + wave * 0.3);
+          
+          if (intensity < 0.1) continue;
+
+          let fx, fy, fw, fh;
+          if (si === 0) { // alt - yukarı doğru
+            fx = side.x + prog * side.w;
+            fy = side.y;
+            fw = side.w / segments * 1.2;
+            fh = flameHeight * (0.5 + intensity * 0.8);
+            const grad = ctx.createLinearGradient(fx, fy, fx, fy - fh);
+            grad.addColorStop(0, `rgba(255,120,30,${intensity * 0.9})`);
+            grad.addColorStop(0.4, `rgba(255,180,40,${intensity * 0.6})`);
+            grad.addColorStop(1, `rgba(255,230,80,0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(fx - fw/2, fy);
+            ctx.lineTo(fx + fw/2, fy);
+            ctx.lineTo(fx + wave * fw * 0.4, fy - fh);
+            ctx.lineTo(fx - wave * fw * 0.4, fy - fh);
+            ctx.closePath();
+            ctx.fill();
+          } else if (si === 1) { // sağ - sola doğru
+            fx = side.x;
+            fy = side.y + prog * side.h;
+            fw = flameHeight * (0.5 + intensity * 0.8);
+            fh = side.h / segments * 1.2;
+            const grad = ctx.createLinearGradient(fx, fy, fx - fw, fy);
+            grad.addColorStop(0, `rgba(255,120,30,${intensity * 0.9})`);
+            grad.addColorStop(0.4, `rgba(255,180,40,${intensity * 0.6})`);
+            grad.addColorStop(1, `rgba(255,230,80,0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(fx, fy - fh/2);
+            ctx.lineTo(fx, fy + fh/2);
+            ctx.lineTo(fx - fw, fy + wave * fh * 0.4);
+            ctx.lineTo(fx - fw, fy - wave * fh * 0.4);
+            ctx.closePath();
+            ctx.fill();
+          } else if (si === 2) { // üst - aşağı doğru
+            fx = side.x + prog * side.w;
+            fy = side.y + flameHeight;
+            fw = side.w / segments * 1.2;
+            fh = flameHeight * (0.5 + intensity * 0.8);
+            const grad = ctx.createLinearGradient(fx, fy, fx, fy + fh);
+            grad.addColorStop(0, `rgba(255,120,30,${intensity * 0.7})`);
+            grad.addColorStop(0.4, `rgba(255,180,40,${intensity * 0.4})`);
+            grad.addColorStop(1, `rgba(255,230,80,0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(fx - fw/2, fy);
+            ctx.lineTo(fx + fw/2, fy);
+            ctx.lineTo(fx + wave * fw * 0.4, fy + fh);
+            ctx.lineTo(fx - wave * fw * 0.4, fy + fh);
+            ctx.closePath();
+            ctx.fill();
+          } else { // sol - sağa doğru
+            fx = side.x + flameHeight;
+            fy = side.y + prog * side.h;
+            fw = flameHeight * (0.5 + intensity * 0.8);
+            fh = side.h / segments * 1.2;
+            const grad = ctx.createLinearGradient(fx, fy, fx + fw, fy);
+            grad.addColorStop(0, `rgba(255,120,30,${intensity * 0.7})`);
+            grad.addColorStop(0.4, `rgba(255,180,40,${intensity * 0.4})`);
+            grad.addColorStop(1, `rgba(255,230,80,0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(fx, fy - fh/2);
+            ctx.lineTo(fx, fy + fh/2);
+            ctx.lineTo(fx + fw, fy + wave * fh * 0.4);
+            ctx.lineTo(fx + fw, fy - wave * fh * 0.4);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+
+      // streak >= 5: kenarlardan süzülen köpük/parçacık
+      if (streak >= 5 && Math.random() < 0.15) {
+        const sideIdx = (Math.random() * activeSides) | 0;
+        const side = sides[sideIdx];
+        const prog = Math.random();
+        let px, py, pvx, pvy;
+        if (sideIdx === 0) { px = side.x + prog * side.w; py = side.y; pvx = (Math.random()-0.5)*30; pvy = -(80+Math.random()*120); }
+        else if (sideIdx === 1) { px = side.x; py = side.y + prog * side.h; pvx = -(80+Math.random()*120); pvy = (Math.random()-0.5)*30; }
+        else if (sideIdx === 2) { px = side.x + prog * side.w; py = side.y + flameHeight; pvx = (Math.random()-0.5)*30; pvy = 80+Math.random()*120; }
+        else { px = side.x + flameHeight; py = side.y + prog * side.h; pvx = 80+Math.random()*120; pvy = (Math.random()-0.5)*30; }
+        
+        const flameColors = ["#ffd93d", "#ff9f43", "#ff5a5f", "#ff2e63"];
+        anims.parts.push({
+          x: px, y: py,
+          vx: pvx, vy: pvy,
+          g: sideIdx % 2 === 0 ? 200 : -200,
+          s: 3 + Math.random() * 5,
+          hex: flameColors[(Math.random() * flameColors.length) | 0],
+          kind: "flame",
+          rot: 0, vr: 0, t0: now, life: 600 + Math.random() * 400,
+        });
+      }
+
       ctx.restore();
     }
 
@@ -718,6 +842,27 @@ const Renderer = (() => {
         const col = Game.grid[r][c];
         if (col === null) continue;
         drawBlock(ctx, L.boardX + c * L.cell, L.boardY + r * L.cell, L.cell, col, 1, placeScale.get(r * 8 + c) ?? 1);
+      }
+    }
+
+    // düşen parçalar animasyonu (Block Blast tarzı yumuşak iniş)
+    if (Game.fallingPieces && Game.fallingPieces.length) {
+      for (const fp of Game.fallingPieces) {
+        const elapsed = now - fp.t0;
+        if (elapsed >= fp.duration) continue;
+        const prog = elapsed / fp.duration;
+        const eased = 1 - Math.pow(1 - prog, 3); // easeOutCubic
+        const currentR = fp.startR + (fp.targetR - fp.startR) * eased;
+        const oy = Math.sin(prog * Math.PI) * L.cell * 0.15; // hafif zıplama
+        
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        for (const [dr, dc] of fp.piece.cells) {
+          const rr = currentR + dr;
+          const cc = fp.targetC + dc;
+          drawBlock(ctx, L.boardX + cc * L.cell, L.boardY + rr * L.cell + oy, L.cell, fp.color, 0.95);
+        }
+        ctx.restore();
       }
     }
 
@@ -955,5 +1100,6 @@ const Renderer = (() => {
       anims.shake = null;
       anims.hint = null;
     },
+    setShake(v) { shakeEnabled = !!v; },
   };
 })();
