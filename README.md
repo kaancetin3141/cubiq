@@ -2,6 +2,15 @@
 
 Block Blast'den ilham alan, **tek kod tabanından web + iOS + Android**'de çalışan premium blok patlatma bulmaca. Sıfır bağımlılık — hiçbir kurulum gerekmeden tarayıcıda çalışır.
 
+## 🔥 v18 — Block Blast analizi: Sarsıntı + Combo Ateşi + Düşüş Animasyonu
+
+**Ekran Sarsıntısı aç/kapa:** ayarlardan kapatılabilir (hassasiyet için), ayar `cubiq.shake` olarak kalıcı. **Combo Ateş Çerçevesi (streak'e göre):**
+- **x2** — hafif turuncu halos
+- **x3** — alt kenarda alev dili
+- **x4** — 4 kenara yayılan alevler
+- **x5+** — tam alev stormu + kenarlardan süzülen köpük parçacıkları
+**Parça Düşüş Animasyonu:** yerleştirilen parça tahtanın üstünden yumuşak iner (easeOutCubic + hafif zıplama), Block Blast'taki o tatlı "konma" hissiyatı. Tüm stil/kare Maliyeti 0 — `Game.fallingPieces` dizi + Renderer'de çizim.
+
 ## ⚡ v17 — Mobil düzeltme + performans cilası
 
 **Mobilde kayan/ezilen ekran düzeltildi:** düzen artık `visualViewport` üzerinden ölçülüyor ve canvas'ın CSS boyutu piksel piksel buffer'la eşitleniyor (iOS araç çubuğu göster/gizle artık tahtayı kaydırmıyor); kısa/yatay ekranlarda taşma kalmadı. **Performans:** hiçbir animasyon yokken oyun kareleri sektirerek (~20fps) çiziyor — dokunuş/patlama anında tam 60fps'e döner (mobilde pil/CPU tasarrufu); süzülen atmosfer blokları sprite önbelleğinden çiziliyor. **Görsel:** tahta artık yumuşak bir düş-gölgesi ve cam kenar ışığıyla havada asılı duruyor, parça tepsisinde yumuşak yuvalar var, arkada yeni bir tema ışıması ve yıldız tozu parlıyor — tümü statik katmanda, çalışma anı maliyeti sıfır.
