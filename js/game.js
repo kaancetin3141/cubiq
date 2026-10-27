@@ -56,6 +56,7 @@ const Game = {
 
   init() {
     this.grid = Array.from({ length: this.N }, () => Array(this.N).fill(null));
+    this.fallingPieces = []; // { piece, startR, targetR, c, color, t0, duration }
     this.reset();
   },
 
@@ -94,6 +95,7 @@ const Game = {
 
   reset() {
     for (let r = 0; r < this.N; r++) this.grid[r].fill(null);
+    this.fallingPieces = [];
     this.score = 0;
     this.streak = 0;
     this.over = false;
@@ -210,6 +212,18 @@ const Game = {
     for (const [rr, cc] of placed) this.grid[rr][cc] = piece.color;
     this.tray[trayIdx] = null;
 
+    /* düşüş animasyonu için kaydet (renderer kullanır) */
+    const minR = Math.min(...placed.map(([rr]) => rr));
+    this.fallingPieces.push({
+      piece: { cells: piece.cells, color: piece.color, w: piece.w, h: piece.h },
+      targetR: r,
+      targetC: c,
+      startR: minR - piece.h, // tahtanın üstünden başlar
+      color: piece.color,
+      t0: performance.now(),
+      duration: 220 + Math.random() * 80, // 220-300ms
+    });
+
     let gain = SCORE.perBlock * piece.cells.length;
     const { rows, cols } = this.fullLines();
     const lines = rows.length + cols.length;
@@ -255,5 +269,11 @@ const Game = {
     if (!this.tray.some((p) => p && this.anyPlacement(p))) this.over = true;
 
     return { placed, cleared, lines, rows, cols, gain, streak: this.streak, over: this.over, fullClear };
+  },
+
+  /* düşüş animasyonlarını güncelle - bitenleri temizle */
+  updateFalling(now) {
+    if (!this.fallingPieces.length) return;
+    this.fallingPieces = this.fallingPieces.filter((fp) => now - fp.t0 < fp.duration);
   },
 };
