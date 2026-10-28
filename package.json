@@ -1,0 +1,20 @@
+{
+  "name": "cubiq",
+  "version": "18.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cubiq premium blok bulmaca — PostgreSQL 17 destekli üretim sunucusu (Bun, port 3005)",
+  "scripts": {
+    "dev": "bun --hot server.ts",
+    "start": "bun server.ts",
+    "db:push": "DATABASE_URL=\"$(grep -m1 '^DATABASE_URL=' .env | cut -d= -f2-)\" prisma db push --accept-data-loss"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.0",
+    "prisma": "^6.19.0"
+  }
+}

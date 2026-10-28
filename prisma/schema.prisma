@@ -1,0 +1,35 @@
+// Cubiq — PostgreSQL şeması (js/api.js sözleşmesine birebir uygun)
+// Score.at  : String — istemci "me" vurgusu için birebir eşleşen ISO damgası
+// SaveState : bulut yedek — slot (oyuncu anahtarı) başına tek kayıt (upsert)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Score {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(24)
+  score     Int
+  mode      String   @db.VarChar(24)
+  lines     Int      @default(0)
+  streak    Int      @default(0)
+  at        String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  @@index([mode, score(sort: Desc)])
+  @@index([score(sort: Desc)])
+}
+
+model SaveState {
+  id        Int      @id @default(autoincrement())
+  slot      String   @unique @db.VarChar(32)
+  data      Json
+  at        String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

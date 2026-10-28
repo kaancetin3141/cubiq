@@ -1,6 +1,50 @@
 # ◆ Cubiq
 
-Block Blast'den ilham alan, **tek kod tabanından web + iOS + Android**'de çalışan premium blok patlatma bulmaca. Sıfır bağımlılık — hiçbir kurulum gerekmeden tarayıcıda çalışır.
+Block Blast'den ilham alan, **tek kod tabanından web + iOS + Android**'de çalışan premium blok patlatma bulmaca. İstemci sıfır bağımlılık — hiçbir kurulum gerekmeden tarayıcıda çalışır; sunucu tarafı ise artık **Bun + PostgreSQL 17** ile profesyonel.
+
+## 🖥️ Sunucu mimarisi (YENİ — PostgreSQL 17)
+
+**Eski:** `serve.js` (yalnız statik, Node) ve `serve.ps1` (statik + dosya tabanlı REST API, PowerShell) — repoda referans için dururlar, artık kullanılmazlar.
+**Yeni:** `server.ts` — tek dosyalık Bun sunucusu; REST API **PostgreSQL 17** üzerinde **Prisma ORM** ile çalışır. Oyun koduna (`js/`) **dokunulmadı**: `js/api.js` istemcisi mevcut sözleşmesini aynen kullanır; sunucu kapalıysa oyun sessizce yerel (localStorage/IndexedDB) moda döner.
+
+- **Port:** `3005` (sunucuda sabit) · **Deploy:** `cubiq.gncinc.online` (gateway `?XTransformPort=3005`)
+- **Veritabanı:** PostgreSQL 17 → `cubiq` DB (tablolar: `Score`, `SaveState`; şema: `prisma/schema.prisma`)
+- **Hız limiti:** `/api/*` uçlarında IP başına 30 istek/dakika (bellek içi)
+- **Önbellek:** `/api/*` → `Cache-Control: no-store` (service worker network-first kabuğuyla çakışmaz); statik dosyalar `no-cache`
+- **Güvenlik:** yol tırmanışı kapalı; `.env`, `server.ts`, `prisma/`, `node_modules/`, `package.json` vb. sunuculanmaz; isim/girdi sanitizasyonu (eski `serve.ps1` eşdeğeri)
+
+### API uç tablosu (sözleşme `js/api.js` ile birebir)
+
+| Uç | Yöntem | İstek | Yanıt |
+|---|---|---|---|
+| `/api/health` | GET | — | `{ ok:true, service:"cubiq", db:"connected\|down", uptimeSec, scores, schema }` |
+| `/api/score` | POST | `{ name, score, mode, lines, streak }` | `{ ok:true, rank, total, at }` — `at` damgası satıra birebir yazılır (oyun "ben" vurgusu için `e.at === res.at` eşleştirir) |
+| `/api/leaderboard` | GET | `?mode=<classic\|time\|daily\|adventure>[&limit=N]` (varsayılan 10, max 50) | **NDJSON** — satır başına `{ name, score, mode, lines, streak, at }`, puana göre azalan; boşsa boş gövde (hata yok) |
+| `/api/save` | POST | `{ slot, data, at }` (slot: oyuncu anahtarı, örn. `main`) | `{ ok:true, slot }` — upsert: slot başına tek kayıt |
+| `/api/save` | GET | `?slot=<anahtar>` | `{ slot, data, at }` · yedek yoksa `404 { ok:false, error:"yedek yok" }` |
+
+### Çalıştırma
+
+```bash
+# 0) .env hazırla (DATABASE_URL = credentials.md → cubiq satırı; PORT=3005 bilgi amaçlı)
+cp .env.example .env
+
+# 1) bağımlılıklar (Bun gerekir)
+bun install
+
+# 2) şemayı PostgreSQL'e bas (Score + SaveState tabloları)
+bun run db:push        # = prisma db push --accept-data-loss (DATABASE_URL'i .env'den okur)
+
+# 3) sunucu
+bun run dev            # http://localhost:3005  (--hot ile geliştirme)
+bun run start          # üretim (bun server.ts)
+
+# daemon:
+( setsid bun run dev </dev/null >/dev/null 2>&1 & )   # sandbox'ta kalıcı arka plan için çift fork
+```
+
+> **Not:** Sandbox'ta parent projenin `DATABASE_URL`'i global ortamı override edebilir; `db:push` betiği ve `server.ts` URL'i daima **yerel `.env`** dosyasından alır.
+
 
 ## 🔥 v18 — Block Blast analizi: Sarsıntı + Combo Ateşi + Düşüş Animasyonu
 
@@ -58,25 +102,21 @@ Yeni **"Cam" teması**: pastel açık zemin, buğulu cam paneller (`backdrop-fil
 
 Oyun sonunda performansın rekorunun oranına göre **1-3 yıldız** kazanılır (≥%100 → 3, ≥%60 → 2, aksi 1); yıldızlar altın pop animasyonuyla panelde belirir, toplam yıldız sayacı kalıcıdır ve ayarlarda görünür.
 
-## 🌍 Tam yığın (fullstack) modu — v7
+## 🌍 Tam yığın (fullstack) modu
 
-Oyun artık gerçek bir istemci-sunucu uygulaması (`serve.ps1` = uzun soluklu sunucu görevi):
+Oyun gerçek bir istemci-sunucu uygulamasıdır. **Eski:** PowerShell `serve.ps1` + dosya veritabanı. **Yeni:** `server.ts` (Bun) + PostgreSQL 17 — ayrıntılar yukarıdaki "Sunucu mimarisi" bölümünde.
 
 - **Küresel liderlik tablosu:** oyun sonunda skor sunucuya gönderilir (`POST /api/score`), panelde "🌍 GLOBAL TOP 5 — sen #N" listesi görünür (`GET /api/leaderboard`, NDJSON).
-- **Bulut yedeği:** Ayarlar → ☁️ YEDEKLE / GERİ YÜKLE (`POST|GET /api/save`) — tüm ilerlemen sunucuda `data\` klasöründe saklanır.
-- **Veri katmanı üçlüsü:** localStorage (birincil) + IndexedDB yansıması (tarayıcı veritabanı yedeği; silinirse otomatik geri yükler) + sunucu dosya veritabanı (10 dk'da bir otomatik yedek, son 5 kopya).
-- **Sağlık ucu:** `GET /api/health` → çalışma süresi + kayıt sayısı.
-- **Dayanıklılık:** sunucu kapalıysa oyun sessizce yerel moda döner; hiçbir şey bozulmaz.
-- **Yük testi:** `stress-test.ps1` — 40 kademeli skor gönderimi (arka plan görevi).
-
-Tüm bunlar Node'suz çalışır: sunucu saf PowerShell (`serve.ps1`), veritabanı düz dosyalar.
+- **Bulut yedeği:** Ayarlar → ☁️ YEDEKLE / GERİ YÜKLE (`POST|GET /api/save`) — tüm ilerlemen PostgreSQL `SaveState` tablosunda saklanır.
+- **Veri katmanı üçlüsü:** localStorage (birincil) + IndexedDB yansıması (tarayıcı veritabanı yedeği; silinirse otomatik geri yükler) + PostgreSQL bulut yedeği.
+- **Sağlık ucu:** `GET /api/health` → çalışma süresi + kayıt sayısı + DB durumu.
+- **Dayanıklılık:** sunucu kapalıysa oyun sessizce yerel moda döner; hiçbir şey bozulmaz (`js/api.js` 3,5 sn zaman aşımı → null → yerel davranış).
 
 ## Hemen oyna
 
-- **En hızlı:** `index.html` dosyasını çift tıklayıp tarayıcıda aç.
-- **Ya da yerel sunucu ile:**
-  - Node varsa: `node serve.js` → http://localhost:8123
-  - Node yoksa (Windows): `powershell -NoProfile -ExecutionPolicy Bypass -File serve.ps1` → http://localhost:8137
+- **Tam yığın (önerilen):** `bun install && bun run db:push && bun run dev` → http://localhost:3005 (liderlik + bulut yedeği + PostgreSQL)
+- **En hızlı (sunucusuz):** `index.html` dosyasını çift tıklayıp tarayıcıda aç (liderlik/bulut sessizce devre dışı).
+- **Eski sunucular (yalıtılmış referans):** `node serve.js` → http://localhost:8123 (yalnız statik) · `powershell -File serve.ps1` → http://localhost:8137 (Windows, dosya veritabanı). Yeni sunucu: `server.ts` (PostgreSQL, port 3005).
 - Telefon/PWA: aynı adresi mobil tarayıcıda açıp "Ana ekrana ekle" deyebilirsin.
 
 ## Premium ne demek (v2 + v3)
@@ -132,7 +172,7 @@ npx cap open android       # veya: npx cap open ios
 ## Proje yapısı
 
 ```
-block-blast/
+cubiq/
 ├── index.html            # iskelet + üst bar (skor çubuğu, taç) + oyun sonu paneli
 ├── css/styles.css        # Cubiq teması: gradient logo, skor çubuğu, panel
 ├── js/pieces.js          # şekil aileleri (otomatik döndürme) + renkler + ağırlıklı çekmece
@@ -140,7 +180,13 @@ block-blast/
 ├── js/game.js            # saf oyun mantığı: ızgara, yerleştirme, patlatma, puan katsayıları, seri
 ├── js/renderer.js        # premium sprite'lar, atmosfer, alev/kıvılcım/süpürme animasyonları
 ├── js/main.js            # pointer girdisi, ses sentezi, haptik, sayan skor, taç çubuğu
-├── serve.js / serve.ps1  # sıfır bağımlılıklı yerel sunucu (Node / PowerShell)
+├── js/api.js             # REST istemcisi (3,5 sn zaman aşımı; sunucu yoksa sessiz yerel mod)
+├── server.ts             # YENİ: Bun sunucu — statik + REST API + PostgreSQL 17 (port 3005)
+├── prisma/schema.prisma  # PostgreSQL şeması: Score + SaveState
+├── package.json          # cubiq: dev / start / db:push betikleri (Bun + Prisma)
+├── .env / .env.example   # DATABASE_URL (cubiq DB) + PORT=3005
+├── serve.js / serve.ps1 # ESKİ: Node statik / PowerShell + dosya DB (referans, kullanılmıyor)
+├── sw.js                 # PWA service worker (network-first; /api/* önbelleğe girmez)
 ├── manifest.json         # PWA
 ├── capacitor.config.json # iOS/Android sarmalama
 └── docs/                 # ana prompt, v1 planı, Cubiq premium planı, test planı
